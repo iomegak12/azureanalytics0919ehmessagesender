@@ -7,6 +7,7 @@ using Bogus;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
 using MessageSender.Models;
+using System.Threading;
 
 namespace MessageSender.Services
 {
@@ -27,7 +28,7 @@ namespace MessageSender.Services
                 .RuleFor(model => model.Temperature, generator => generator.Random.Int(20, 30));
         }
 
-        public Task<bool> Submit(EventHubInfo eventHubInfo)
+        public async Task<bool> Submit(EventHubInfo eventHubInfo)
         {
             var status = default(bool);
 
@@ -50,17 +51,19 @@ namespace MessageSender.Services
                     var eventDataBytes = Encoding.ASCII.GetBytes(jsonString);
                     var eventData = new EventData(eventDataBytes);
 
-                    eventHubClient.SendAsync(eventData);
+                    await eventHubClient.SendAsync(eventData);
+
+                    Console.Write(".");
                 }
 
                 status = true;
             }
-            catch 
+            catch
             {
                 status = false;
             }
 
-            return Task.FromResult(status);
+            return status;
         }
     }
 }
